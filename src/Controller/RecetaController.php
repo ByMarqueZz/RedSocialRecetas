@@ -8,6 +8,7 @@ use App\Repository\RecetaRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
 use App\Entity\Foto;
@@ -16,13 +17,34 @@ use App\Repository\FotoRepository;
 #[Route('/receta')]
 class RecetaController extends AbstractController
 {
+    private $entityManager;
+
+    public function __construct(EntityManagerInterface $entityManager)
+    {
+        $this->entityManager = $entityManager;
+    }
     #[Route('/', name: 'app_receta_index', methods: ['GET'])]
     public function index(RecetaRepository $recetaRepository, FotoRepository $fotoRepository): Response
     {
+        $recetas = $this->entityManager->getRepository(Receta::class)->findAll();
+        $ingredientes = [];
+        for ($i = 0; $i < count($recetas); $i++) {
+            $recetaId = $recetas[$i]->getId();
+            $qb = $this->entityManager->createQueryBuilder()
+                ->select('i')
+                ->from('App\Entity\Ingrediente', 'i')
+                ->join('i.recetas', 'r')
+                ->where('r.id = :recetaId')
+                ->setParameter('recetaId', $recetaId);
+
+            $ingredientesQuery = $qb->getQuery();
+            $ingredientes[$i] = $ingredientesQuery->getResult();
+        }
         return $this->render('receta/index.html.twig', [
-            'recetas' => $recetaRepository->findAll(),
+            'recetas' => $recetas,
             'fotos' => $fotoRepository->findAll(),
             'key' => 0,
+            'ingredientes' => $ingredientes,
         ]);
     }
 

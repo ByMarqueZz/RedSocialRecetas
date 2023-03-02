@@ -50,6 +50,15 @@
     .recetaFooter {
         text-align: center;
     }
+    .listaIngredientes {
+        width: 50%;
+        margin: 0 auto;
+        padding: 0;
+        padding-bottom: 1rem;
+    }
+    .listaIngredientes li {
+        list-style: none;
+    }
 </style>
 
 <div class="main">
@@ -63,10 +72,20 @@
                 <p>{{ receta.tipoReceta }}</p>
             </div>
             <div class="recetaBody">
-                <img src={{asset(fotos[key])}} alt='foto de receta' class='fotoReceta'/>
+                <img src={{asset('img/' ~ fotos[key])}} alt='foto de receta' class='fotoReceta'/>
             </div>
             <div class="recetaFooter">
-                <details>{{ receta.descripcion }}</details>
+                <details>
+                    <summary>Receta</summary>
+                    <p><b>Ingredientes</b></p>
+                    <ul class='listaIngredientes'>
+                        {% for ingrediente in ingredientes[key] %}
+                            <li>{{ ingrediente }}</li>
+                        {% endfor %}
+                    </ul>
+                    <p><b>Preparación</b></p>
+                    {{ receta.descripcion }}
+                </details>
             </div>
         </div>
         {% set key = key + 1 %}
